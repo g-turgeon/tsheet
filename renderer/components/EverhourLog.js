@@ -4,11 +4,12 @@ import { uniq } from 'lodash'
 import { clipboard } from 'electron'
 import React, { Fragment, createContext, useContext, useEffect, useRef, useState } from 'react'
 import styled from 'styled-components'
-import Hotkey from 'components/Hotkey'
-import { Block, Time } from 'components/generic'
-import { StoreContext } from 'components/store'
-import { selectByDate, tasksTotal, groupByProject } from 'selectors'
-import { timeFormat } from 'utils'
+import { Block, Time } from './generic'
+import Hotkey from './Hotkey'
+import StoreContext from './store'
+import Calendar from './Calendar'
+import { selectByDate, tasksTotal, groupByProject } from '../selectors'
+import { timeFormat } from '../utils'
 
 const ClipboardContext = createContext()
 
@@ -17,13 +18,19 @@ const ClipboardProvider = ({ children }) => {
   return <ClipboardContext.Provider value={[clipboard, setClipboard]} children={children} />
 }
 
-const createDayDescription = tasks => {
-  const descriptions = tasks.map(({ description }) => description)
+const multiLine = description => `- ${description}`
+const singleLine = description => `${description}`
 
-  return uniq(descriptions)
-    .map(description => `- ${description}`)
-    .join('\n')
+const describeDay = tasks => {
+  const descriptions = uniq(tasks.map(({ description }) => description))
+  const format = descriptions.length > 1 ? multiLine : singleLine
+
+  return descriptions.map(format).join('\n')
 }
+
+const Panel = styled(Block)`
+  padding: 20px;
+`
 
 const CopyElement = styled(Block)`
   margin: 4px;
@@ -83,7 +90,7 @@ export default () => {
   const items = Object.entries(groupByProject(tasksOfDay)).map(([ name, tasks ]) => ({
     name,
     total: tasksTotal(tasks),
-    description: createDayDescription(tasks)
+    description: describeDay(tasks)
   }))
 
   return (
@@ -94,8 +101,14 @@ export default () => {
         <Hotkey keys={'k'} onKeyDown={() => moveDate(-7)} />
         <Hotkey keys={'l'} onKeyDown={() => moveDate(1)} />
 
-        <p>{date.format('dddd, MMMM D, YYYY')}</p>
-        {items.map(project => <Project key={project.name} {...project} />)}
+        <Panel>
+          <Calendar date={date} />
+        </Panel>
+
+        <Panel>
+          <p>{date.format('dddd, MMMM D, YYYY')}</p>
+          {items.map(project => <Project key={project.name} {...project} />)}
+        </Panel>
       </Block>
     </ClipboardProvider>
   )

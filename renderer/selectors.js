@@ -8,9 +8,13 @@ export const selectByWeek = (tasks, date) => {
   return tasks.filter(task => startOfWeek.isSame(dayjs(task.date).startOf('week')))
 }
 
-export const groupByProject = (tasks) => groupBy(tasks, task => {
+export const groupByProject = tasks => groupBy(tasks, task => {
   const [ project ] = task.path.split(/(:|\/)/)
   return project
+})
+
+export const groupByDate = tasks => groupBy(tasks, task => {
+  return task.date
 })
 
 export const tasksTotal = tasks => tasks.reduce((total, task) => total + task.total, 0)

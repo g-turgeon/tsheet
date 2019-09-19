@@ -1,19 +1,32 @@
 import fs from 'fs'
+import { ipcRenderer } from 'electron'
 import chokidar from 'chokidar'
 import React, { Fragment, useContext, useEffect, useRef, useState } from 'react'
 import ReactDOM from 'react-dom'
 import styled, { css, createGlobalStyle } from 'styled-components'
-import timesheetParse from 'timesheet-parser'
-import Hotkey from 'components/Hotkey'
-import { StoreProvider, StoreContext } from 'components/store'
-import SectionView from 'components/SectionView'
-import TaskView from 'components/TaskView'
-import EverhourLog from 'components/EverhourLog'
-import Projects from 'components/Projects'
+import timesheetParse from './timesheet-parser'
+import Hotkey from './components/Hotkey'
+import StoreContext, { StoreProvider } from './components/store'
+import SectionView from './components/SectionView'
+import TaskView from './components/TaskView'
+import EverhourLog from './components/EverhourLog'
+import Projects from './components/Projects'
+
+const useIPCEvent = (event, callback) => {
+  const callbackRef = useRef()
+
+  callbackRef.current = callback
+
+  useEffect(() => {
+    console.log('Run')
+
+    const handler = (event, data) => { callbackRef.current(data) }
+    ipcRenderer.on(event, handler)
+    return () => ipcRenderer.off(event, handler)
+  }, [event])
+}
 
 // TODO Change filename
-const FILENAME = '/Users/dev/Documents/important/timesheets/iregular_main'
-// const FILENAME = '/Users/dev/Documents/important/timesheets/iregular_plankton-project_calc'
 
 const actions = {
   setData: data  => ({type: 'SET_DATA', data})
@@ -37,9 +50,8 @@ const GlobalStyle = createGlobalStyle`
     font-family: Roboto, sans-serif;
   }
 `
- // const data = timesheetParse(content)
-const useFileWatch = (path) => {
-  const [ currentContent, setCurrentContent ] = useState(null)
+const useFileWatch = path => {
+  const [ currentContent, setCurrentContent ] = useState()
   const currentPath = useRef('')
 
   const watcher = useRef()
@@ -65,13 +77,13 @@ const useFileWatch = (path) => {
 }
 
 
-const Main = () => {
+const Main = ({ filename }) => {
   const [ state, dispatch ] = useContext(StoreContext)
   const [ sections, setSections ] = useState({})
   const [ tasks, setTasks ] = useState([])
   const [ page, setPage ] = useState('tasks')
 
-  const content = useFileWatch(FILENAME)
+  const content = useFileWatch(filename)
 
   useEffect(() => {
     if (content) {
@@ -95,15 +107,19 @@ const Main = () => {
   )
 }
 
-const Layout = () => {
+const Layout = ({ filename }) => {
   return (
     <Fragment>
       <GlobalStyle />
-      <StoreProvider children={<Main />} />
+      <StoreProvider children={<Main filename={filename} />} />
     </Fragment>
   )
 }
 
 const container = document.createElement('div')
 document.body.appendChild(container)
-ReactDOM.render(<Layout />, container)
+
+ipcRenderer.once('file-load', (event, data) => {
+  ReactDOM.render(<Layout filename={data} />, container)
+})
+

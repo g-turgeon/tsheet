@@ -25,9 +25,10 @@ const reducer = (state, action) => {
   return state
 }
 
-export const StoreContext = createContext()
+const Context = createContext()
+export default Context
 
 export const StoreProvider = ({ children }) => {
   const [ state, dispatch ] = useReducer(reducer, initialState)
-  return <StoreContext.Provider value={[state, dispatch]} children={children} />
+  return <Context.Provider value={[state, dispatch]} children={children} />
 }

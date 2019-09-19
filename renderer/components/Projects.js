@@ -4,10 +4,10 @@ import { uniq } from 'lodash'
 import { clipboard } from 'electron'
 import React, { Fragment, createContext, useContext, useEffect, useRef, useState } from 'react'
 import styled from 'styled-components'
-import { Block, Time } from 'components/generic'
-import { StoreContext } from 'components/store'
-import { selectByDate, tasksTotal, groupByProject } from 'selectors'
-import { timeFormat } from 'utils'
+import { Block, Time } from './generic'
+import StoreContext from './store'
+import { selectByDate, tasksTotal, groupByProject } from '../selectors'
+import { timeFormat } from '../utils'
 
 export default ({ data }) => {
   const [ state, dispatch ] = useContext(StoreContext)

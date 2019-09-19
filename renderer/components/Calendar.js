@@ -1,7 +1,7 @@
 import dayjs from 'dayjs'
 import React, { Fragment } from 'react'
 import styled from 'styled-components'
-import { Block } from 'components/generic'
+import { Block } from './generic'
 
 const MonthGrid = styled(Block)`
   width: calc(20px * 7);
