@@ -20,7 +20,6 @@ app.on('ready', () => {
   win.on('closed', () => windows.main = null)
 
   win.webContents.on('did-finish-load', () => {
-    console.log('IT LOADED')
     win.webContents.send('file-load', filename)
   })
 
