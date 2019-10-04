@@ -1,5 +1,5 @@
 node_modules/
 .env
 app/index.js
-app/index.map.js
+app/index.js.map
 .cache
