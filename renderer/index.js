@@ -47,7 +47,8 @@ const GlobalStyle = createGlobalStyle`
 
   body {
     font-size: 12px;
-    font-family: Roboto, sans-serif;
+    font-family: Cantarell, sans-serif;
+    color: #333;
   }
 `
 const useFileWatch = path => {

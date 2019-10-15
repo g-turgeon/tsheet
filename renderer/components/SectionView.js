@@ -1,43 +1,71 @@
+import { last } from 'lodash'
 import React, { Fragment, useContext } from 'react'
 import styled from 'styled-components'
 import StoreContext from './store'
 import { Block, Time } from './generic'
+import AccumulationGraph from './AccumulationGraph'
 
-const tasksTotalTime = tasks => tasks.reduce((total, task) => ( total + task.total), 0)
+const Duration = ({ value }) => {
+  const hours = Math.floor(value / 60)
+  const minutes = value % 60
+  return `${hours && `${hours}h\u00a0` || ''}${minutes && `${minutes}m` || ''}`
+}
 
-const SectionName = styled.div`
-  font-weight: bold;
+const tasksTotalTime = tasks => tasks.reduce((total, task) => total + task.total, 0)
+
+const SectionName = styled(Block)`
+  font-weight: 600;
+  font-size: 16px;
 `
 const Panel = styled(Block)`
   margin: 10px;
 `
 
-const TimeDifference = ({ value }) => (value < 0)
-  ? <span style={{color: 'red', fontWeight: 'bold'}}>-<Time value={value} /></span>
-  : <span style={{color: 'MediumSeaGreen', fontWeight: 'bold'}}>+<Time value={value} /></span>
+const Table = styled(Block)`
+  display: table;
+  min-width: 512px;
+`
 
-const SectionElement = styled(({ name, expectedTime, tasks, ...props }) => {
-  const total = tasksTotalTime(tasks)
+const ActualTime = styled(Block)`
+  font-weight: 600;
+  font-size: 16px;
+  margin-bottom: 4px;
+`
+
+const ExpectedTime = styled(Block)`
+  font-size: 14px;
+`
+
+const TimeDifference = styled(({ value, ...props }) => ((value < 0)
+  ? <Block {...props} style={{color: 'tomato'}}>-<Duration value={-value} /></Block>
+  : <Block {...props} style={{color: 'MediumSeaGreen'}}><Duration value={value} /></Block>
+))`
+  font-size: 16px;
+  font-weight: 600;
+`
+
+const SectionElement = styled(({ name, expectedTime, tasks, total, ...props }) => {
+  const sectionTotal = tasksTotalTime(tasks)
 
   return (
     <Block {...props}>
       <SectionName children={name} />
-      <Block><Time value={total} /></Block>
-      {expectedTime !== null && (<Block><TimeDifference value={total - expectedTime} /></Block>)}
+      <Block>
+        <ActualTime><Duration value={sectionTotal} /></ActualTime>
+        <ExpectedTime><Duration value={expectedTime} /></ExpectedTime>
+      </Block>
+      <Block><TimeDifference value={expectedTime && sectionTotal - expectedTime} /></Block>
+      <Block><TimeDifference value={total} /></Block>
     </Block>
   )
 })`
-  border: 1px solid #efefef;
-  display: grid;
-  max-width: 400px;
-  grid: auto / 1fr 0fr 0fr;
-
-  & + & {
-    margin-top: -1px;
-  }
+  display: table-row;
 
   > div {
-    padding: 10px;
+    display: table-cell;
+    padding: 16px;
+    vertical-align: middle;
+    border-top: 2px solid #eee;
   }
 `
 
@@ -55,19 +83,30 @@ export default () => {
 
   const sectionList = Object.values(sections)
 
-  const sectionItems = sectionList.map(section => <SectionElement key={section.name} {...section} />)
+  const accumulation = sectionList.reduce((acc, current) => {
+    const total = last(acc) || 0
+
+    const diff = (current.expectedTime)
+      ? tasksTotalTime(current.tasks) - current.expectedTime
+      : 0
+
+    return [...acc, total + diff]
+  }, [])
+
+  const sectionItems = sectionList.map((section, index) => (
+    <SectionElement key={section.name} {...section} total={accumulation[index]} />
+  ))
+
   const currentDifference = expectedTimeDifferenceTotal(sectionList)
   const lastSectionDifference = expectedTimeDifferenceTotal(sectionList.slice(0, -1))
 
   return (
     <Fragment>
-      <Panel>
-        <p>Current difference: <TimeDifference value={currentDifference} /></p>
-        <p>Last section difference: <TimeDifference value={lastSectionDifference} /></p>
-      </Panel>
-      <Panel>
+      <AccumulationGraph data={accumulation.map(value => value / 60)} />
+
+      <Table>
         {Array.from(sectionItems).reverse()}
-      </Panel>
+      </Table>
     </Fragment>
   )
 }
