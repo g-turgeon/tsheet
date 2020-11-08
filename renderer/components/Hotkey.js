@@ -1,47 +1,31 @@
-import React, {Component} from 'react'
-import keyboardJS from 'keyboardjs'
+import React, { useEffect } from 'react'
+import { fromEvent, merge } from 'rxjs'
+import { filter, tap } from 'rxjs/operators'
 
-/**
- * Wraps the Keyboard JS module into a React Component
- */
-export default class KeyHandler extends Component {
-  onKeyDown(event) {
-    const {disabled = false, enabled = true, onKeyDown, preventDefault = false} = this.props
+const HotKey = ({ keys, disabled = false, preventDefault = false, onKeyDown, onKeyUp }) => {
+  useEffect(() => {
+    const keydown$ = fromEvent(window, 'keydown', event => {
+      preventDefault && event.preventDefault()
+      return event
+    }).pipe(
+      filter(event => event.key === keys),
+      tap(onKeyDown)
+    )
 
-    if (!disabled && enabled && onKeyDown) {
-      if (preventDefault) {
-        event.preventDefault()
-      }
-      onKeyDown(event)
-    }
-  }
+    const keyup$ = fromEvent(window, 'keyup', event => {
+      preventDefault && event.preventDefault()
+      return event
+    }).pipe(
+      filter(event => event.key === keys),
+      tap(onKeyUp)
+    )
 
-  onKeyUp(event) {
-    const {disabled = false, enabled = true, onKeyUp, preventDefault = false} = this.props
+    const subscription = merge(keydown$, keyup$).subscribe()
 
-    if (!disabled && enabled && onKeyUp) {
-      if (preventDefault) {
-        event.preventDefault()
-      }
-      onKeyUp(event)
-    }
-  }
+    return () => subscription.unsubscribe()
+  })
 
-  componentDidMount() {
-    const {keys} = this.props
-
-    this.onKeyDown = ::this.onKeyDown
-    this.onKeyUp = ::this.onKeyUp
-
-    keyboardJS.on(keys, this.onKeyDown, this.onKeyUp)
-  }
-
-  componentWillUnmount() {
-    const {keys, onKeyDown, onKeyUp} = this.props
-    keyboardJS.off(keys, this.onKeyDown, this.onKeyUp)
-  }
-
-  render() {
-    return null
-  }
+  return null
 }
+
+export default HotKey

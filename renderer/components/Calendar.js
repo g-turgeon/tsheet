@@ -4,30 +4,30 @@ import styled from 'styled-components'
 import { Block } from './generic'
 
 const MonthGrid = styled(Block)`
-  width: calc(20px * 7);
-  height: calc(20px * 7);
+  width: calc(18px * 7);
+  height: calc(18px * 7);
   font-size: 10px;
   display: inline-grid;
   grid: auto-flow / repeat(7, 0fr);
 `
 
 const Header = styled(Block)`
-  width: calc(20px * 7);
-  font-size: 10px;
+  width: calc(18px * 7);
   font-size: 12px;
   text-align: center;
 `
 
 const Day = styled(Block)`
-  line-height: 20px;
-  width: 20px;
-  height: 20px;
+  line-height: 18px;
+  width: 18px;
+  height: 18px;
   text-align: center;
   border-radius: 2px;
-  ${({ outside }) => outside && `color: #ccc;`}
+  color: var(--normal-white);
+  ${({ outside }) => outside && `color: var(--light-black);`}
   ${({ active }) => active && `
-    background-color: DodgerBlue;
-    color: white;
+    background-color: var(--accent);
+    color: var(--normal-black);
   `}
 `
 
@@ -58,7 +58,7 @@ export default ({ date }) => {
 
   return (
     <Fragment>
-      <Header>{date.format('MMMM YYYY')}</Header>
+      <Header>{date.format('MMMM')}</Header>
       <MonthGrid children={[weekDays, previousDays(firstDay), daysIn, nextDays(firstDay)]} />
     </Fragment>
   )

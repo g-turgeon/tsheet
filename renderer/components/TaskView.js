@@ -1,31 +1,27 @@
-import dayjs from 'dayjs'
 import React, { Fragment, useContext, useState } from 'react'
 import styled from 'styled-components'
-import Hotkey from './Hotkey'
+
 import StoreContext from './store'
-import { Block, Time } from './generic'
+import Hotkey from './Hotkey'
+import { Block, Time, Duration } from './generic'
+import MainLayout from './MainLayout'
+import Panel from './Panel'
 import Calendar from './Calendar'
-import { selectByDate, selectByWeek, groupByDate, tasksTotal } from '../selectors'
+import CalendarDate from './CalendarDate'
+import WeekSummary from './WeekSummary'
+import { selectByDate, selectByWeek, groupByDate, groupByPath, tasksTotal } from '../selectors'
+import { describeDay } from './EverhourLog'
 
 const DATE_FORMAT = 'YYYY-MM-DD'
 const LONG_DATE = 'ddd, MMMM D, YYYY'
 
-const Layout = styled(Block)`
-  display: grid;
-  width: 100vw;
-  height: 100vh;
-  grid: auto / 0fr 1fr;
-  overflow: hidden;
-`
-
-const Header = styled(Block)`
-  padding: 20px;
-`
-
 const Main = styled(Block)`
   display: grid;
-  grid: 0fr 1fr / auto;
-  height: 100vh;
+  grid: auto 1fr / auto 1fr auto;
+  grid-gap: 8px;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
 `
 
 const DayTitle = styled(Block)`
@@ -33,10 +29,9 @@ const DayTitle = styled(Block)`
   margin-bottom: 4px;
 `
 
-const TaskListWrapper = styled(Block)`
-  background: #efefef;
-  padding: 20px;
-  overflow-y: scroll;
+const TaskListWrapper = styled(Panel)`
+  overflow-y: auto;
+  grid-column: 1 / 4;
 `
 
 const Big = styled(Block)`
@@ -44,23 +39,30 @@ const Big = styled(Block)`
 `
 
 const Small = styled(Block)`
-  padding: 2px 10px;
+  padding: 2px 8px;
   font-size: 10px;
 `
+
 const Path = styled(Small)`
-  background: #efefef;
+  font-weight: bold;
+  background: var(--accent);
+  color: var(--normal-black);
 `
 
 const TimeBlock = styled(Block)`
   text-align: right;
 `
 
+const TaskTimeInterval = styled(Small)`
+  color: var(--normal-white);
+`
+
 const Task = styled(({ start, end, total, path, description, ...props }) => {
   return (
     <Block {...props}>
       <TimeBlock>
-        <Small><Time value={start} /> - <Time value={end} /></Small>
-        <Big><Time value={total} /></Big>
+        <Big><strong><Duration value={total} /></strong></Big>
+        <TaskTimeInterval><Time value={start} /> - <Time value={end} /></TaskTimeInterval>
       </TimeBlock>
       <Block>
         <Path children={path} />
@@ -70,99 +72,31 @@ const Task = styled(({ start, end, total, path, description, ...props }) => {
   )
 })`
   display: flex;
-  margin: 1px 0;
-  border-radius: 2px;
-  padding: 10px;
-  background-color: #fff;
-  border-left: 3px solid red;
+  padding: 8px 0;
 `
-// -------------------------------------
-const Board = styled(Block)`
-  position: relative;
-  height: 288px;
-  width: 100px;
-  background: #eee;
-  margin: 2px;
-
-  ${({ active }) => active && `
-    background: #ddd;
-  `}
-`
-
-const Container = styled(Block)`
-  display: flex;
-`
-
-const BoardBlock = styled(({ start, duration, className }) => {
-  const style = {
-    top: Math.round(start / 5) + 'px',
-    height: Math.round(duration / 5) + 'px'
-  }
-
-  return <div className={className} style={style} />
-})`
-  position: absolute;
-  background: dodgerblue;
-  width: 100%;
-`
-
-const DetailedDay = ({ date, tasks = [], active = false }) => {
-  const blocks = tasks.map((task, id) => (<BoardBlock key={id} start={task.start} duration={task.total} />))
-
-  return (
-    <div>
-      <header style={{textAlign: 'center'}}>
-        <p>{date.format('ddd')}</p>
-        <p>{date.format('MMM D')}</p>
-      </header>
-      <Board active={active}>{blocks}</Board>
-    </div>
-  )
-}
-
-
-
-const WeekSchedule = ({ date, tasks }) => {
-  const startOfWeek = date.startOf('week')
-
-  const detailedDays = [...Array(7)].map((v, i) => {
-    const current = startOfWeek.add(i, 'day')
-    return <DetailedDay date={current} key={i} active={current.format(DATE_FORMAT) === date.format(DATE_FORMAT)} tasks={tasks[current.format(DATE_FORMAT)]} />
-  })
-
-  return (<Container>{detailedDays}</Container>)
-}
 
 export default () => {
   const [ state, dispatch ] = useContext(StoreContext)
   const { data: { tasks, sections }, date } = state
 
   const tasksOfDay = selectByDate(tasks, date.format(DATE_FORMAT))
-  const tasksOfWeek = selectByWeek(tasks, date.format(DATE_FORMAT))
-  const groupedTasksOfWeek = groupByDate(tasksOfWeek)
-
 
   const moveDate = amount =>
     dispatch({type: 'SET_DATE', date: date.add(amount, 'day')})
-
-
   return (
-    <Layout>
-      <Header>
-        <Calendar date={date} />
-      </Header>
-
+    <MainLayout>
       <Main>
-        <Header>
-          <DayTitle children={date.format(LONG_DATE)} />
-          <Block>
-            <Block><Time value={tasksTotal(tasksOfDay)} /> / <Time value={tasksTotal(tasksOfWeek)} /></Block>
-          </Block>
-        </Header>
+        <Panel>
+          <Calendar date={date} />
+        </Panel>
 
-        <div>
-          <WeekSchedule date={date} tasks={groupedTasksOfWeek} />
-        </div>
+        <Panel>
+          <CalendarDate date={date} />
+        </Panel>
+
+        <Panel>
+          <WeekSummary date={date} tasks={tasks} />
+        </Panel>
 
         <TaskListWrapper children={
           tasksOfDay.length
@@ -175,6 +109,6 @@ export default () => {
       <Hotkey keys={'j'} onKeyDown={() => moveDate(7)} />
       <Hotkey keys={'k'} onKeyDown={() => moveDate(-7)} />
       <Hotkey keys={'l'} onKeyDown={() => moveDate(1)} />
-    </Layout>
+    </MainLayout>
   )
 }

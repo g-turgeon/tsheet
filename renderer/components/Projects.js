@@ -6,6 +6,7 @@ import React, { Fragment, createContext, useContext, useEffect, useRef, useState
 import styled from 'styled-components'
 import { Block, Time } from './generic'
 import StoreContext from './store'
+import Panel from './Panel'
 import { selectByDate, tasksTotal, groupByProject } from '../selectors'
 import { timeFormat } from '../utils'
 
@@ -22,10 +23,12 @@ export default ({ data }) => {
 
   return (
     <Fragment>
-      <p>Projects</p>
-      <ul>
-        {totalsByProject.map(({name, total}) => <li key={name}>{name} <Time value={total} /></li>)}
-      </ul>
+      <Panel>
+        <p>Projects</p>
+        <ul>
+          {totalsByProject.map(({name, total}) => <li key={name}>{name} <Time value={total} /></li>)}
+        </ul>
+      </Panel>
     </Fragment>
   )
 }

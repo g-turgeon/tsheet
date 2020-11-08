@@ -1,10 +1,11 @@
 import dayjs from 'dayjs'
 
 const isEmpty = line => line === ''
+const isVacationLine = line => line.startsWith('~~~')
 
-const isCommentLine = line => line.indexOf('#') === 0
-const isDate = line => line.indexOf('--') === 0
-const isSection = line => line.indexOf('===') === 0
+const isCommentLine = line => line.startsWith('#')
+const isDate = line => line.startsWith('--')
+const isSection = line => line.startsWith('===')
 
 const timeValue = (hours, minutes) => hours * 60 + minutes
 
@@ -23,14 +24,17 @@ const expressions = {
 }
 
 // Parse section
-const parseSection = ({content, number}) => {
+const parseSection = ({ content, number }) => {
   if (expressions.section.withExpectedTime.test(content)) {
     const [ full, name, expectedTime ] = expressions.section.withExpectedTime.exec(content)
     const value = name.trim()
-    return {type: 'section', value: {
-      name: name.trim(),
-      expectedTime: parseTime(expectedTime)
-    }}
+    return {
+      type: 'section',
+      value: {
+        name: name.trim(),
+        expectedTime: parseTime(expectedTime)
+      }
+    }
   } else if (expressions.section.default.test(content)) {
     const [ full, name ] = expressions.section.default.exec(content)
     const value = name.trim()
@@ -73,7 +77,7 @@ const parseTask = ({ content }) => {
 export default content => {
   const lines = content.split('\n')
     .map((line, n) => ({number: n, content: line}))
-    .filter(line => !isCommentLine(line.content) && !isEmpty(line.content))
+    .filter(line => !isVacationLine(line.content) && !isCommentLine(line.content) && !isEmpty(line.content))
     .map(line => {
       if (isSection(line.content)) {
         return parseSection(line)

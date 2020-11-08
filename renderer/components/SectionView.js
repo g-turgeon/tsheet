@@ -1,46 +1,60 @@
 import { last } from 'lodash'
 import React, { Fragment, useContext } from 'react'
 import styled from 'styled-components'
-import StoreContext from './store'
-import { Block, Time } from './generic'
-import AccumulationGraph from './AccumulationGraph'
 
-const Duration = ({ value }) => {
-  const hours = Math.floor(value / 60)
-  const minutes = value % 60
-  return `${hours && `${hours}h\u00a0` || ''}${minutes && `${minutes}m` || ''}`
-}
+import StoreContext from './store'
+import AccumulationGraph from './AccumulationGraph'
+import Calendar from './Calendar'
+import CalendarDate from './CalendarDate'
+import Hotkey from './Hotkey'
+import MainLayout from './MainLayout'
+import Panel from './Panel'
+import WeekSummary from './WeekSummary'
+import { Block, Time, Duration } from './generic'
+import { selectByDate, selectByWeek, groupByDate, groupByPath, tasksTotal } from '../selectors'
+
+const DATE_FORMAT = 'YYYY-MM-DD'
+const LONG_DATE = 'ddd, MMMM D, YYYY'
 
 const tasksTotalTime = tasks => tasks.reduce((total, task) => total + task.total, 0)
 
-const SectionName = styled(Block)`
-  font-weight: 600;
-  font-size: 16px;
+const Main = styled(Block)`
+  display: grid;
+  grid: auto 1fr / auto 1fr auto;
+  grid-gap: 8px;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
 `
-const Panel = styled(Block)`
-  margin: 10px;
+
+const SectionName = styled.div`
+  font-weight: 600;
 `
 
 const Table = styled(Block)`
   display: table;
-  min-width: 512px;
 `
 
-const ActualTime = styled(Block)`
+const ActualTime = styled.span`
   font-weight: 600;
-  font-size: 16px;
-  margin-bottom: 4px;
 `
 
-const ExpectedTime = styled(Block)`
+const ExpectedTime = styled.span`
   font-size: 14px;
+`
+const Cell = styled(Block)`
+  padding: 8px;
+  vertical-align: middle;
+`
+
+const NumberCell = styled(Cell)`
+  display: table-cell;
 `
 
 const TimeDifference = styled(({ value, ...props }) => ((value < 0)
-  ? <Block {...props} style={{color: 'tomato'}}>-<Duration value={-value} /></Block>
-  : <Block {...props} style={{color: 'MediumSeaGreen'}}><Duration value={value} /></Block>
+  ? <Block {...props} style={{color: 'var(--normal-red)'}}>-<Duration value={-value} /></Block>
+  : <Block {...props} style={{color: 'var(--normal-green)'}}><Duration value={value} /></Block>
 ))`
-  font-size: 16px;
   font-weight: 600;
 `
 
@@ -49,24 +63,15 @@ const SectionElement = styled(({ name, expectedTime, tasks, total, ...props }) =
 
   return (
     <Block {...props}>
-      <SectionName children={name} />
-      <Block>
-        <ActualTime><Duration value={sectionTotal} /></ActualTime>
-        <ExpectedTime><Duration value={expectedTime} /></ExpectedTime>
-      </Block>
-      <Block><TimeDifference value={expectedTime && sectionTotal - expectedTime} /></Block>
-      <Block><TimeDifference value={total} /></Block>
+      <Cell><SectionName>{name}</SectionName></Cell>
+      <NumberCell><Duration value={sectionTotal} /> <span style={{color: 'var(--normal-white)'}}>/ <Duration value={expectedTime} /></span></NumberCell>
+      <NumberCell><TimeDifference value={expectedTime && sectionTotal - expectedTime} /></NumberCell>
+      <NumberCell><TimeDifference value={total} /></NumberCell>
     </Block>
   )
 })`
   display: table-row;
-
-  > div {
-    display: table-cell;
-    padding: 16px;
-    vertical-align: middle;
-    border-top: 2px solid #eee;
-  }
+  font-size: 12px;
 `
 
 const expectedTimeDifferenceTotal = sections => sections.reduce((difference, section) => {
@@ -77,7 +82,7 @@ const expectedTimeDifferenceTotal = sections => sections.reduce((difference, sec
   return difference
 }, 0)
 
-export default () => {
+const Hello = () => {
   const [ state, dispatch ] = useContext(StoreContext)
   const { data: { sections, tasks } } = state
 
@@ -111,3 +116,56 @@ export default () => {
   )
 }
 
+export default () => {
+  const [ state, dispatch ] = useContext(StoreContext)
+  const { data: { tasks, sections }, date } = state
+
+  const tasksOfDay = selectByDate(tasks, date.format(DATE_FORMAT))
+
+  const moveDate = amount => dispatch({type: 'SET_DATE', date: date.add(amount, 'day')})
+
+  const sectionList = Object.values(sections)
+
+  const accumulation = sectionList.reduce((acc, current) => {
+    const total = last(acc) || 0
+
+    const diff = (current.expectedTime)
+      ? tasksTotalTime(current.tasks) - current.expectedTime
+      : 0
+
+    return [...acc, total + diff]
+  }, [])
+
+  const sectionItems = sectionList.map((section, index) => (
+    <SectionElement key={section.name} {...section} total={accumulation[index]} />
+  ))
+
+  return (
+    <MainLayout>
+      <Main>
+        <Panel>
+          <Calendar date={date} />
+        </Panel>
+
+        <Panel>
+          <CalendarDate date={date} />
+        </Panel>
+
+        <Panel>
+          <WeekSummary date={date} tasks={tasks} />
+        </Panel>
+
+        <Panel style={{gridColumn: '1 / 4', overflowY: 'auto'}}>
+          <Table>
+            {Array.from(sectionItems).reverse()}
+          </Table>
+        </Panel>
+      </Main>
+
+      <Hotkey keys={'h'} onKeyDown={() => moveDate(-1)} />
+      <Hotkey keys={'j'} onKeyDown={() => moveDate(7)} />
+      <Hotkey keys={'k'} onKeyDown={() => moveDate(-7)} />
+      <Hotkey keys={'l'} onKeyDown={() => moveDate(1)} />
+    </MainLayout>
+  )
+}

@@ -13,6 +13,8 @@ export const groupByProject = tasks => groupBy(tasks, task => {
   return project
 })
 
+export const groupByPath = tasks => groupBy(tasks, task => task.path)
+
 export const groupByDate = tasks => groupBy(tasks, task => {
   return task.date
 })
