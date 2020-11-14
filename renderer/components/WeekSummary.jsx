@@ -11,12 +11,9 @@ const Container = styled(Block)`
 `
 
 const BoardBlock = styled(({ start, duration, ...props }) => {
-  const style = {
-    top: Math.round(start / 20),
-    height: Math.round(duration / 20)
-  }
-
-  return <Block {...props} style={style} />
+  const top = Math.round(start / 15)
+  const height = Math.round(duration / 15)
+  return <Block {...props} style={{top, height}} />
 })`
   position: absolute;
   background: var(--light-black);
@@ -25,7 +22,8 @@ const BoardBlock = styled(({ start, duration, ...props }) => {
 
 const Board = styled(Block)`
   position: relative;
-  height: 72px;
+  // height: 72px;
+  height: 96px;
   width: 48px;
   background: var(--normal-black);
 
