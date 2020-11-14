@@ -63,4 +63,3 @@ ipcRenderer.once('file-load', (event, filename) => {
   document.head.title = filename
   ReactDOM.render(<Layout filename={filename} />, container)
 })
-

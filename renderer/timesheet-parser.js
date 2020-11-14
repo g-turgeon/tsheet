@@ -1,4 +1,6 @@
 import dayjs from 'dayjs'
+import chalk from 'chalk'
+import { groupBy } from 'lodash/fp'
 
 const isEmpty = line => line === ''
 const isVacationLine = line => line.startsWith('~~~')
@@ -13,6 +15,8 @@ const parseTime = str => {
   const [ hours, minutes ] = str.split(':')
   return Number.parseInt(hours) * 60 + Number.parseInt(minutes)
 }
+
+const groupByDate = groupBy('date')
 
 const expressions = {
   date: /^--\s?(?<date>\d{2,4}\-\d{2}\-\d{2})/,
@@ -89,6 +93,7 @@ export default content => {
     })
 
   const sections = {}
+  const dates = {}
 
   let currentSection
   let currentDate
@@ -96,11 +101,23 @@ export default content => {
   lines.forEach(line => {
     if (line.type === 'section') {
       currentSection = line.value.name
-      sections[currentSection] = {...line.value, tasks: []}
+
+      // Check if the section has already been defined. In which case an error should be thrown
+      if (sections[currentSection]) {
+        console.warn(`Session ${currentSection} has already been defined`)
+      } else {
+        sections[currentSection] = {...line.value, tasks: []}
+      }
     }
 
     if (line.type === 'date') {
       currentDate = line.value
+
+      if (dates[currentDate]) {
+        console.warn(`Date ${currentDate} has already been defined`)
+      }
+
+      dates[currentDate] = line.value
     }
 
     if (line.type === 'task') {
@@ -109,6 +126,22 @@ export default content => {
       sections[currentSection].tasks.push(line.value)
     }
   })
+
+  for (const [ name, section ] of Object.entries(sections)) {
+    const dates = groupByDate(section.tasks)
+
+    for (const [ date, tasks ] of Object.entries(dates)) {
+      let lastEnd = 0
+
+      for (const task of tasks) {
+        if (task.end < lastEnd || task.start < lastEnd) {
+          console.error(`Overlapping time task in section ${section.name} on ${date}: ${task.description}`)
+        }
+
+        lastEnd = task.end
+      }
+    }
+  }
 
   const tasks = lines.filter(line => line.type === 'task').map(line => line.value)
 
