@@ -9,7 +9,6 @@ import timesheetParse from './timesheet-parser'
 import StoreContext, { StoreProvider } from './components/store'
 import SectionView from './components/SectionView'
 import TaskView from './components/TaskView'
-import EverhourLog from './components/EverhourLog'
 import Projects from './components/Projects'
 import useFileWatch from './hooks/file-watch'
 
@@ -36,12 +35,10 @@ const Main = ({ filename }) => {
     <Fragment>
       {page === 'sections' && <SectionView />}
       {page === 'tasks' && <TaskView />}
-      {page === 'everhour' && <EverhourLog />}
       {page === 'projects' && <Projects />}
 
       <Hotkey keys={'s'} onKeyDown={() => setPage('sections')} />
       <Hotkey keys={'t'} onKeyDown={() => setPage('tasks')} />
-      <Hotkey keys={'e'} onKeyDown={() => setPage('everhour')} />
       <Hotkey keys={'p'} onKeyDown={() => setPage('projects')} />
     </Fragment>
   )

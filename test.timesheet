@@ -3877,5 +3877,25 @@
 15:30 - 16:00 [EMERGE_WNDR:TEST_TRACKER_PLAYER_SETUP] Test face tracker with video + check shipping fees
 16:00 - 16:30 [EMERGE_WNDR:TEST_TRACKER_PLAYER_SETUP] Run test config of tracker
 
+-- 2021-07-05
+07:00 - 07:30 [CURSOR:SOFTWARE_DEVELOPMENT/PLAYER] Run test to isolate cause of sudden webglcontext lost error
+07:30 - 07:45 [CURSOR:SOFTWARE_DEVELOPMENT/DUBAI_SETUP] Tweak antibodies so the contrast level can be adjusted in config
+07:45 - 09:00 [EMERGE_WNDR:MEETING_AND_PLANNING] Review planning + Look into Dlib face orientation
+09:00 - 09:30 [CURSOR:SOFTWARE_DEVELOPMENT/MEETING_AND_PLANNING] Dev meeting
+09:30 - 10:00 [EMERGE_WNDR:MEETING_AND_PLANNING] Review planning
+10:00 - 10:45 [CURSOR:SOFTWARE_DEVELOPMENT/MEETING_AND_PLANNING] Weekly meeting
+10:45 - 11:30 [EMERGE_WNDR:SETUP_PC] Install CUDA and CuDNN
+11:30 - 12:00 [ANTIBODIES_REMOTE/DEVELOPMENT] Fix the mobile user tile stretch bug
+13:00 - 13:15 [ANTIBODIES_REMOTE/DEVELOPMENT] Check for Antibodies deployment
+13:15 - 14:45 [EMERGE_WNDR:SETUP_PC] Install OpenCV, Spinnaker SDK, NDI SDK, create ssh key, clone Cursor Player and Tracker
+14:45 - 15:00 [ANTIBODIES_REMOTE/DEVELOPMENT] Disable noise pattern overlayed on user image
+15:00 - 15:15 [EMERGE_WNDR:SETUP_PC] Finalize NDI SDK Installation + Build Cursor Tracker
+15:15 - 15:30 [ANTIBODIES_REMOTE/DEVELOPMENT] Discuss cause of mobile bug (iPhone)
+15:30 - 16:00 [EMERGE_WNDR:TEST_TRACKER_PLAYER_SETUP] Test face tracker with video + check shipping fees
+16:00 - 16:30 [EMERGE_WNDR:TEST_TRACKER_PLAYER_SETUP] Run test config of tracker
+
+
+# Week 85 (Next Week of vacation accumulated)
+
 
 # Week 85 (Next Week of vacation accumulated)

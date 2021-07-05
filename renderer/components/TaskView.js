@@ -1,5 +1,6 @@
-import React, { Fragment, useContext, useState } from 'react'
+import React, { Fragment, useCallback, useContext, useState } from 'react'
 import styled from 'styled-components'
+import { clipboard } from 'electron'
 
 import StoreContext from './store'
 import Hotkey from './Hotkey'
@@ -38,6 +39,15 @@ const Big = styled(Block)`
   padding: 2px 10px;
 `
 
+const TaskDescription = styled(Big)`
+  cursor: default;
+
+  :hover {
+    background: var(--normal-white);
+    color: var(--normal-black);
+  }
+`
+
 const Small = styled(Block)`
   padding: 2px 8px;
   font-size: 10px;
@@ -57,6 +67,14 @@ const TaskTimeInterval = styled(Small)`
   color: var(--normal-white);
 `
 
+const CopyClick = ({ content, children }) => {
+  const onClick = useCallback((event) => {
+    clipboard.writeText(content)
+  }, [content])
+
+  return <div onClick={onClick}>{children}</div>
+}
+
 const Task = styled(({ start, end, total, path, description, ...props }) => {
   return (
     <Block {...props}>
@@ -66,7 +84,7 @@ const Task = styled(({ start, end, total, path, description, ...props }) => {
       </TimeBlock>
       <Block>
         <Path children={path} />
-        <Big>{description}</Big>
+        <CopyClick content={description}><TaskDescription children={description} /></CopyClick>
       </Block>
     </Block>
   )
